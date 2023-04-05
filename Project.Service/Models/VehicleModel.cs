@@ -13,7 +13,6 @@ namespace Project.Service.Models
         public string? Name { get; set; }
         public string? Abrv { get; set; }
         public int MakeId { get; set; }
-
-        public virtual VehicleMake? Make { get; set; }
+        public virtual VehicleMake Make { get; set; }
     }
 }

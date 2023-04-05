@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Project.MVC.Data;
+using Project.MVC.Models;
 using Project.Service.Interfaces;
 using Project.Service.Models;
 using Project.Service.Service;
@@ -16,19 +18,24 @@ namespace Project.MVC.Controllers
     {
         private readonly ProjectMVCContext _context;
         private readonly VehicleModelService _vehicleModelService;
+        private readonly IMapper _mapper;
 
-        public VehicleModelsController(ProjectMVCContext context)
+        public VehicleModelsController(ProjectMVCContext context, IMapper mapper)
         {
             _context = context;
             _vehicleModelService = new VehicleModelService(_context);
+            _mapper = mapper;
         }
 
         // GET: VehicleModels
         public async Task<IActionResult> Index()
         {
+            var modelList = await _vehicleModelService.GetVehicleModels();
+            var modelVMList = _mapper.Map<List<VehicleModelVM>>(modelList);
+
             return _context.VehicleModel != null ?
-                    View(await _vehicleModelService.GetVehicleModels()) :
-                    Problem("Entity set 'ProjectMVCContext.VehicleMake' is null");
+                    View(modelVMList) :
+                    Problem("Entity set 'ProjectMVCContext.VehicleModel' is null");
         }
 
         // GET: VehicleModels/Details/5
@@ -40,13 +47,14 @@ namespace Project.MVC.Controllers
             }
 
             var vehicleModel = await _vehicleModelService.GetById((int)id);
+            var vehicleModelVM = _mapper.Map<VehicleModelVM>(vehicleModel);
 
             if (vehicleModel == null)
             {
                 return NotFound();
             }
 
-            return View(vehicleModel);
+            return View(vehicleModelVM);
         }
 
         // GET: VehicleModels/Create
@@ -70,7 +78,7 @@ namespace Project.MVC.Controllers
                 await _vehicleModelService.Create(vehicleModel);
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["MakeId"] = new SelectList(_context.VehicleMake, "Id", "Id", vehicleModel.MakeId);
+            ViewData["MakeId"] = new SelectList(_context.VehicleMake, "Id", "Name", vehicleModel.MakeId);
             return View(vehicleModel);
         }
 
@@ -84,13 +92,14 @@ namespace Project.MVC.Controllers
 
             //var vehicleModel = await _context.VehicleModel.FindAsync(id);
             var vehicleModel = await _vehicleModelService.GetById((int)id);
+            var vehicleModelVM = _mapper.Map<VehicleModelVM>(vehicleModel);
 
             if (vehicleModel == null)
             {
                 return NotFound();
             }
             ViewData["MakeId"] = new SelectList(_context.VehicleMake, "Id", "Name", vehicleModel.MakeId);
-            return View(vehicleModel);
+            return View(vehicleModelVM);
         }
 
         // POST: VehicleModels/Edit/5
@@ -98,9 +107,9 @@ namespace Project.MVC.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Abrv,MakeId")] VehicleModel vehicleModel)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Abrv,MakeId")] VehicleModelVM vehicleModelVM)
         {
-            if (id != vehicleModel.Id)
+            if (id != vehicleModelVM.Id)
             {
                 return NotFound();
             }
@@ -111,11 +120,12 @@ namespace Project.MVC.Controllers
                 {
                     //_context.Update(vehicleModel);
                     //await _context.SaveChangesAsync();
+                    var vehicleModel = _mapper.Map<VehicleModel>(vehicleModelVM);
                     await _vehicleModelService.Update(vehicleModel);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!await _vehicleModelService.IfExists(vehicleModel.Id))
+                    if (!await _vehicleModelService.IfExists(vehicleModelVM.Id))
                     {
                         return NotFound();
                     }
@@ -126,8 +136,8 @@ namespace Project.MVC.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["MakeId"] = new SelectList(_context.VehicleMake, "Id", "Id", vehicleModel.MakeId);
-            return View(vehicleModel);
+            ViewData["MakeId"] = new SelectList(_context.VehicleMake, "Id", "Name", vehicleModelVM.MakeId);
+            return View(vehicleModelVM);
         }
 
         // GET: VehicleModels/Delete/5
@@ -142,12 +152,13 @@ namespace Project.MVC.Controllers
             //    .Include(v => v.Make)
             //    .FirstOrDefaultAsync(m => m.Id == id);
             var vehicleModel = await _vehicleModelService.GetById((int)id);
+            var vehicleModelVM = _mapper.Map<VehicleModelVM>(vehicleModel);
             if (vehicleModel == null)
             {
                 return NotFound();
             }
 
-            return View(vehicleModel);
+            return View(vehicleModelVM);
         }
 
         // POST: VehicleModels/Delete/5

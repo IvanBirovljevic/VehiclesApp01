@@ -28,9 +28,8 @@ namespace Project.MVC.Data
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=Project.MVC.Data;Trusted_Connection=True;MultipleActiveResultSets=true");
+            optionsBuilder.UseLazyLoadingProxies();
         }
-
-       
     }
 }
 

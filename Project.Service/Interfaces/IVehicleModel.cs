@@ -15,6 +15,6 @@ namespace Project.Service.Interfaces
 
         public int MakeId { get; set; }
 
-        public  VehicleMake? Make { get; set; }
+        public VehicleMake Make { get; set; }
     }
 }
